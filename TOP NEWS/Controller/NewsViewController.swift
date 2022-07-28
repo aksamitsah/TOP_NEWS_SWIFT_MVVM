@@ -1,5 +1,5 @@
 //
-//  NewsViewController.swift
+//  TableViewController.swift
 //  TOP NEWS
 //
 //  Created by amit sah on 28/07/22.
@@ -8,12 +8,9 @@
 import UIKit
 import SafariServices
 
-class NewsViewController: UIViewController {
-
-    var viewModel = NewsViewModel()
-    let indicator = Indicator()
-    @IBOutlet weak var tableView: UITableView!
+class NewsViewController: UITableViewController {
     
+    var viewModel = NewsViewModel()
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -22,18 +19,16 @@ class NewsViewController: UIViewController {
         viewModel.vc = self
         tableView.delegate = self
         tableView.dataSource = self
-
-        tableView.register(UINib(nibName: TopNewsTableViewCell.nibName, bundle: nil), forCellReuseIdentifier: TopNewsTableViewCell.reuseIdentifier)
         
+        tableView.register(UINib(nibName: TopNewsTableViewCell.nibName, bundle: nil), forCellReuseIdentifier: TopNewsTableViewCell.reuseIdentifier)
     }
     
-    func displayMessage(_ body: String){
-        DispatchQueue.main.async {
-            Utils.displayAlert(v: self,body)
-        }
+    @IBAction func pullToRefress(_ sender: UIRefreshControl) {
+        sender.tag = 1
+        viewModel.apiRequetCall(sender)
     }
-
 }
+
 extension NewsViewController: SFSafariViewControllerDelegate{
     
     func setupURL(_ url : URL){
@@ -47,35 +42,26 @@ extension NewsViewController: SFSafariViewControllerDelegate{
     }
 }
 
-extension NewsViewController: UITableViewDelegate, UITableViewDataSource{
+extension NewsViewController{
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        print("index selectde: ",indexPath.row)
-        
-        guard let url = URL(string: "https://www.google.com") else{
-            print("error")
-            return
-        }
-        setupURL(url)
-
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        viewModel.webView(indexPath.row)
     }
     
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 20//viewModel.data.count
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel.data.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: TopNewsTableViewCell.reuseIdentifier, for: indexPath) as! TopNewsTableViewCell
-      
-        //cell.setupData(resp: viewModel.data[indexPath.row])
+        
+        cell.data = viewModel.data[indexPath.row]
         return cell
     }
     
     //Animation Show
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         
         cell.transform = CGAffineTransform(scaleX: 0, y: 0)
         UIView.animate(withDuration: 0.2, delay: 0.0, animations: {
@@ -90,5 +76,11 @@ extension NewsViewController: UITableViewDelegate, UITableViewDataSource{
     }
 }
 
-
-
+extension NewsViewController{
+    
+    func displayMessage(_ body: String){
+        DispatchQueue.main.async {
+            Utils.displayAlert(v: self,body)
+        }
+    }
+}

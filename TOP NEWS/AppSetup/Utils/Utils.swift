@@ -13,18 +13,18 @@ import Kingfisher
 struct Utils{
     
     public static func dateFormrtter(_ date: String) -> String{
-            
-            if date == "0000-00-00 00:00:00" || date == ""{
-                return "Invalid"
-            }
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-            let date = dateFormatter.date(from: date)
-            dateFormatter.dateFormat = "dd MMM yyyy h:mm a"
-            return dateFormatter.string(from: date!)
+        
+        if date == "0000-00-00 00:00:00" || date == ""{
+            return "Invalid"
         }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let date = dateFormatter.date(from: date)
+        dateFormatter.dateFormat = "dd MMM yyyy h:mm a"
+        return dateFormatter.string(from: date!)
+    }
     
     static func displayAlert(v :AnyObject , _ body: String) {
         

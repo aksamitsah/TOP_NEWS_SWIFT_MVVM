@@ -9,7 +9,7 @@ import UIKit
 import Foundation
 
 public struct K{
-
+    
     public struct APIs {
         
         private static var BASE_URL = "https://newsapi.org/v2/"
@@ -29,6 +29,7 @@ public struct K{
         
         static let secondaryColor = UIColor(named: "secondary")
         static let  primaryColor = UIColor(named: "primary")
+        
         
     }
     

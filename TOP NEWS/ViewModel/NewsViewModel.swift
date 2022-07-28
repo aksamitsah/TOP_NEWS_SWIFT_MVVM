@@ -11,40 +11,49 @@ import UIKit
 class NewsViewModel{
     
     weak var vc: NewsViewController?
-    var data: [NewsData] = []
+    var data: [NewsData] = []{
+        didSet{
+            vc?.tableViewReload()
+        }
+    }
     
-    func apiRequetCall(){
-        vc?.indicator.showIndicator()
+    func apiRequetCall(_ sender: UIRefreshControl = UIRefreshControl()){
         
-        BaseNetworkCall().getResponse(K.APIs.topHeadlines, params: ["sources":"techcrunch"])
+        if sender.tag != 1 {
+            Indicator.sharedInstance.showIndicator()
+        }
+        
+        BaseNetworkCall().getResponse(K.APIs.topHeadlines, params: [
+            "sources":"techcrunch"
+        ])
         { [self] result in
-
             DispatchQueue.main.async{
-                self.vc?.indicator.hideIndicator()
+                if sender.tag != 1 {
+                    Indicator.sharedInstance.hideIndicator()
+                }
+                else{
+                    sender.endRefreshing()
+                }
             }
+            
             switch result {
             case .success(let datas):
-
+                
                 do{
                     let resp :NewsResponse = try JSONDecoder().decode(NewsResponse.self, from: datas)
-
+                    
                     DispatchQueue.main.async {
-
+                        
                         if resp.status ?? "" == "OK" && resp.totalResults ?? 0 < 1 {
                             self.vc?.displayMessage("No Result Found")
                             return
                         }
                         
-                        print(resp.articles)
-                        guard let rec = resp.articles, rec.count > 0 else {
-                            return
+                        if let rec = resp.articles, rec.count > 0{
+                            self.data = rec
+                            //self.data.append(contentsOf: rec)
                         }
-                        self.data = rec
-                        //self.data.append(contentsOf: rec)
                         
-                        DispatchQueue.main.async{
-                            self.vc?.tableViewReload()
-                        }
                     }
                 }
                 catch {
@@ -57,13 +66,15 @@ class NewsViewModel{
                 }
             }
         }
-
+        
     }
     
-    static func openVC(parentVC: UIViewController){
-        if let openViewController = K.StoryBoard.mainStoryBoard.instantiateViewController(withIdentifier: NewsModel.identifier) as? NewsViewController {
-            openViewController.modalPresentationStyle = .fullScreen
-            parentVC.present(openViewController, animated: true)
+    func webView(_ index: Int){
+        
+        guard let url = URL(string: data[index].url ?? "") else{
+            vc?.displayMessage("Cant get URL")
+            return
         }
+        vc?.setupURL(url)
     }
 }

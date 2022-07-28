@@ -9,17 +9,31 @@ import UIKit
 
 class TopNewsTableViewCell: UITableViewCell {
     
+    @IBOutlet weak var UIMain: UIView!
     @IBOutlet weak var headlineImage: UIImageView!
     @IBOutlet weak var title: UILabel!
     @IBOutlet weak var author: UILabel!
     @IBOutlet weak var descriptions: UILabel!
-    //author , title , description
-
+    
+    var data : NewsData?{
+        didSet{
+            title.text = data?.title
+            author.text = data?.author
+            descriptions.text = data?.description
+            
+            if let img = data?.urlToImage {
+                LoadImage().fetch(urlString: img, img: headlineImage)
+            }
+        }
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        
+        UILayoutDesign.setCardView(with: UIMain)
+        
     }
-
+    
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
     }

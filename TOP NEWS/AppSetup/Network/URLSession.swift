@@ -25,7 +25,7 @@ class BaseNetworkCall{
             case .custom(let value): return value
             case .NilDataResponse:  return "Got an Null from server."
             case .InvalidURL: return "Got an URl Error."
-            //@unknown default: return ""
+                //@unknown default: return ""
             }
         }
     }
@@ -33,21 +33,24 @@ class BaseNetworkCall{
     public func getResponse(_ url: String, params : [String: String], completion: @escaping (Result< Data, Error>) -> Void ){
         
         //Network Handler
-        if !Reachability().isConnectedToNetwork(){
+        if !Handler().isConnectedToNetwork(){
             completion(.failure(ResponseError.NetworkError))
             return
         }
+        
+        var parameter = params
+        parameter["apiKey"] = K.APIs.API_KEY
         
         //GET - URL GENERATE
         guard var components = URLComponents(string: url) else{
             completion(.failure(ResponseError.InvalidURL))
             return
         }
-        components.queryItems = params.map { (key, value) in
+        components.queryItems = parameter.map { (key, value) in
             URLQueryItem(name: key, value: value)
         }
         
-        components.queryItems = [URLQueryItem(name: "apiKey", value: K.APIs.API_KEY)]
+        //components.queryItems = [URLQueryItem(name: "apiKey", value: K.APIs.API_KEY)]
         
         guard let componentURL = components.url else {
             completion(.failure(ResponseError.InvalidURL))
@@ -55,9 +58,6 @@ class BaseNetworkCall{
         }
         let request = URLRequest(url: componentURL)
         
-        //Debug print
-        debugPrint(request)
-    
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             
             guard
@@ -66,32 +66,33 @@ class BaseNetworkCall{
                 200 ..< 300 ~= response.statusCode,           // is statusCode 2XX
                 error == nil                                  // was there no error
             else {
-                print(String(describing: error))
+                debugPrint(String(describing: error))
                 completion(.failure(ResponseError.custom(String(describing: error))))
                 return
             }
             do{
                 let dictionary = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? NSDictionary
-               
+                
                 //Debug print
-                print(dictionary as Any)
+                debugPrint("URl: ", request)
+                debugPrint("Response: ", dictionary as Any)
+                
                 if dictionary == nil{
                     completion(.failure(ResponseError.CatchJsonResponse))
-                    print("CatchJsonResponse")
+                    debugPrint("CatchJsonResponse")
                     return
                 }
                 else{
                     completion(.success(data))
-                    print("sucessful..!")
+                    debugPrint("sucessful..!")
                     return
                 }
             }
             catch {
                 // catch error.
                 completion(.failure(ResponseError.CatchJsonResponse))
-                print("CatchJsonResponse")
+                debugPrint("CatchJsonResponse")
             }
-            
         }
         task.resume()
     }
